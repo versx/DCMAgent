@@ -19,7 +19,7 @@
 3.) Install pm2 (optional) `npm install pm2 -g`  
 4.) Copy example config file `cp config.example.json config.json`  
 5.) Fill out `config.json`  
-6.) Start the bot with `pm2 start listener.js`  
+6.) Start the bot with `pm2 start listener.js` or `node listener.js` if not using pm2  
 
 ## Discord  
 https://discordapp.com/invite/zZ9h9Xa  
