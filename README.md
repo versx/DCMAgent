@@ -5,12 +5,12 @@
 2.) Update Homebrew `brew update`  
 3.) Uninstall previous `libimobiledevice` versions `brew uninstall --ignore-dependencies libimobiledevice`  
 4.) Uninstall previous `usbmuxd` versions `brew uninstall --ignore-dependencies usbmuxd`  
-4.) Uninstall previous `libplist` versions `brew uninstall --ignore-dependencies libplist`  
-5.) Install latest `usbmuxd` `brew install --HEAD usbmuxd`  
-5.) Install latest `libplist` `brew install --HEAD libplist`   
-7.) Install latest `libimobiledevice` `brew install --HEAD libimobiledevice`  
+5.) Uninstall previous `libplist` versions `brew uninstall --ignore-dependencies libplist`  
+6.) Install latest `usbmuxd` `brew install --HEAD usbmuxd`  
+7.) Install latest `libplist` `brew install --HEAD libplist`   
+8.) Install latest `libimobiledevice` `brew install --HEAD libimobiledevice`  
 9.) Install `ideviceinstaller` `brew install ideviceinstaller`  
-9.) Install `ios-deploy` `brew install ios-deploy`  
+10.) Install `ios-deploy` `brew install ios-deploy`  
 
 ## Installation  
 1.) Clone repository `git clone https://github.com/versx/DCMRemoteListener`  
