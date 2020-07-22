@@ -2,6 +2,7 @@
 //  PACKAGE REQUIREMENTS
 //------------------------------------------------------------------------------
 const fs = require("fs");
+const os = require("os");
 const Moment = require("moment");
 const Request = require("request");
 const express = require("express");
@@ -37,7 +38,7 @@ server.post("/", (payload, res) => {
       // RESTART A DEVICE
       case "restart":
         if(device.name == target.device){
-          let restart = await cli_exec("idevicediagnostics -u "+device.uuid+" restart","device_command");
+          let restart = await cli_exec(`idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`,"device_command");
 
           // THERE WAS AN ERROR WITH IDEVICEDIAGNOSTICS
           if(restart.hasError){
@@ -121,6 +122,13 @@ function getTime(type,unix){
       case "full": return Moment.unix(unix).format("hh:mmA DD-MMM");
     }
   }
+}
+
+//------------------------------------------------------------------------------
+//  GET OS PLATFORM FUNCTION
+//------------------------------------------------------------------------------
+function isWindows() {
+  return os.platform() === "win32";
 }
 
 // LISTEN TO THE SPECIFIED PORT FOR TRAFFIC
