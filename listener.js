@@ -48,19 +48,36 @@ server.post("/", (payload, res) => {
             res.json({ status: 'error', node: config.name, error:'Failed to restart device.' });
 
           // RESTART WAS SUCCESSFUL
-          } else{
+          } else {
             console.log("[DCM] [listener.js] ["+getTime("log")+"] Restarted "+device.name+" : "+device.uuid+".");
 
             // SEND CONFIRMATION TO DCM
             res.json({ status: 'ok' });
           }
-        } break;
+        }
+        break;
 
-      // case 'FUTURE': break;
-      //
-      //
-      //
-      //
+      // REOPEN THE GAME
+      case "reopen":
+        if(device.name == target.device){
+          let reopen = await cli_exec("curl http://"+device.ipaddr+":8080/restart","device_command");
+
+          // THERE WAS AN ERROR WITH CURL
+          if(reopen.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to reopen game for "+device.name+" : "+device.uuid+".",response.error);
+
+            // SEND ERROR TO DCM
+            res.json({ status: 'error', node: config.name, error:'Failed to reopen game.' });
+
+          // RESTART WAS SUCCESSFUL
+          } else {
+            console.log("[DCM] [listener.js] ["+getTime("log")+"] Reopened the game for "+device.name+" : "+device.uuid+".");
+
+            // SEND CONFIRMATION TO DCM
+            res.json({ status: 'ok' });
+          }
+        }
+        break;
     }
   }); return;
 });
@@ -72,7 +89,7 @@ function cli_exec(command,type){
   return new Promise( async function(resolve){
     let response = {};
     exec(command, async (err, stdout, stderr) => {
-      if(err){
+      if(err && !command.includes('ping')){
         console.error("[DCM] [listener.js] ["+getTime("log")+"]", err);
         response.hasError = true;
         response.error = stderr;
@@ -82,17 +99,63 @@ function cli_exec(command,type){
           // INITIAL DEVICE IDENTIFICATION FOR DEVICE ARRAY
           case 'device_identification':
             let data = stdout.split("\n");
-            await data.forEach((device,i) => {
-              if(device.includes('iPhone')){
-                let device_object = {};
-                device_object.name = device.split("'")[1];
-                device_object.uuid = device.split(" ")[2];
-                devices.push(device_object);
-                console.log("[DCM] [listener.js] ["+getTime("log")+"] Found Device:", device_object);
-              }
+            var forloop = new Promise( async function(resolve, reject){
+              var counter = 0;
+              await data.forEach(async (device,i) => {
+                if(device.includes('iPhone') || device.includes('iPad')){
+                  let device_object = {};
+                  device_object.name = device.split("'")[1];
+                  device_object.uuid = device.split(" ")[2];
+                  // Look for WiFi addresses since it's quick
+                  device_object.ipaddr = await cli_exec("ping -t 1 "+device_object.name,'device_ipaddr');
+                  if(device_object.ipaddr == ''){
+                    // Look for tethered addresses and blanks. This takes a while
+                    device_object.ipaddr = await cli_exec("idevicesyslog -u "+device_object.uuid+" -m '192.168.' -T 'IPv4'",'device_ipaddr');
+                  }
+                  devices.push(device_object);
+                  console.log("[DCM] [listener.js] ["+getTime("log")+"] Found Device:", device_object);
+                }
+                if(counter >= data.length -1){
+                  resolve();
+                } else {
+                  counter++
+                }
+              });
             });
-            console.log("[DCM] [listener.js] ["+getTime("log")+"] Total Devices: "+devices.length);
-            return resolve(); break;
+
+            forloop.then(() => {
+              console.log("[DCM] [listener.js] ["+getTime("log")+"] Total Devices: "+devices.length)
+              return resolve();
+            });
+            break;
+
+          // GET IP INFO
+          case 'device_ipaddr':
+            let ipaddr = '';
+            if(!err && command.includes('ping')){
+              let ping_data = stdout.split("\n");
+              let string_data1 = ping_data[0].split("(");
+              let string_data2 = string_data1[1].split(")");
+              ipaddr = string_data2[0];
+            }
+            else if(!err) {
+              let ip_line = '';
+              let log_data = stdout.split("\n");
+              for(var line of log_data){
+                if(line.includes("<->IPv4")){
+                  ip_line = line;
+                  break;
+                }
+              }
+              let ip_strings = ip_line.split(/ |:/);
+              for(var line of ip_strings){
+                if(line.includes("192.168.")){
+                  ipaddr = line;
+                  break;
+                }
+              }
+            }
+            return resolve(ipaddr);
 
           // GENERAL IDEVICEDIAGNOSTICS COMMAND
           case 'device_command':
