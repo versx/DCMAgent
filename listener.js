@@ -78,6 +78,48 @@ server.post("/", (payload, res) => {
           }
         }
         break;
+
+      // REAPPLY THE SAM PROFILE
+      case "profile":
+        if(device.name == target.device){
+          // REMOVE THE SAM PROFILE
+          var profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to remove the SAM1 profile from "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to remove the SAM1 profile.' });
+            break;
+          }
+
+          // APPLY THE CLOCK PROFILE TO FORCE THE GAME CLOSED
+          profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt install-profile sam_clock.mobileconfig","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to add the SAM_CLOCK profile to "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to add the SAM_CLOCK profile.' });
+            break;
+          }
+
+          // REMOVE THE SAM PROFILE AGAIN
+          profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to remove the SAM2 profile from "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to remove the SAM2 profile.' });
+            break;
+          }
+
+          // APPLY THE POGO PROFILE TO RELAUNCH THE GAME
+          profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt install-profile sam_pogo.mobileconfig","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to add the SAM_CALC profile to "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to add the SAM_POGO profile.' });
+            break;
+          }
+
+          // REAPPLICATION WAS SUCCESSFUL
+          console.log("[DCM] [listener.js] ["+getTime("log")+"] Reapplied the SAM profile to "+device.name+" : "+device.uuid+".");
+          // SEND CONFIRMATION TO DCM
+          res.json({ status: 'ok' });
+        }
+        break;
     }
   }); return;
 });
