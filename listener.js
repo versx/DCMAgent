@@ -23,7 +23,7 @@ server.use(function(req, res, next) {
 //  GET LOCAL DEVICE INFORMATION
 //------------------------------------------------------------------------------
 var devices = [];
-cli_exec("ios-deploy -c","device_identification");
+cli_exec("cfgutil --format JSON list","device_identification");
 
 //------------------------------------------------------------------------------
 //  PAYLOAD PROCESSING
@@ -99,18 +99,21 @@ function cli_exec(command,type){
           // INITIAL DEVICE IDENTIFICATION FOR DEVICE ARRAY
           case 'device_identification':
             let data = stdout.split("\n");
+            json = JSON.parse(data[0]);
+            data = json.Output;
             var forloop = new Promise( async function(resolve, reject){
               var counter = 0;
-              await data.forEach(async (device,i) => {
-                if(device.includes('iPhone') || device.includes('iPad')){
+              await Object.keys(data).forEach(async (device) => {
+                if(data[device].deviceType.includes('iPhone') || data[device].deviceType.includes('iPad')){
                   let device_object = {};
-                  device_object.name = device.split("'")[1];
-                  device_object.uuid = device.split(" ")[2];
+                  device_object.name = data[device].name;
+                  device_object.uuid = data[device].UDID;
+                  device_object.ecid = data[device].ECID;
                   // Look for WiFi addresses since it's quick
                   device_object.ipaddr = await cli_exec("ping -t 1 "+device_object.name,'device_ipaddr');
                   if(device_object.ipaddr == ''){
                     // Look for tethered addresses and blanks. This takes a while
-                    device_object.ipaddr = await cli_exec("idevicesyslog -u "+device_object.uuid+" -m '192.168.' -T 'IPv4'",'device_ipaddr');
+                    device_object.ipaddr = await cli_exec("idevicesyslog -u "+device_object.uuid+" -m 'flow path=satisfied (Path is satisfied)' -T 'flow path'",'device_ipaddr');
                   }
                   devices.push(device_object);
                   console.log("[DCM] [listener.js] ["+getTime("log")+"] Found Device:", device_object);
@@ -153,6 +156,10 @@ function cli_exec(command,type){
                   ipaddr = line;
                   break;
                 }
+              }
+              if(ipaddr == ''){
+                // Rarely, it may still be blank, check the log again
+                ipaddr = await cli_exec(command,'device_ipaddr');
               }
             }
             return resolve(ipaddr);
