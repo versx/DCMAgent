@@ -113,12 +113,12 @@ function cli_exec(command,type){
                   device_object.ipaddr = await cli_exec("ping -t 1 "+device_object.name,'device_ipaddr');
                   if(device_object.ipaddr == ''){
                     // Look for tethered addresses and blanks. This takes a while
-                    device_object.ipaddr = await cli_exec("idevicesyslog -u "+device_object.uuid+" -m 'flow path=satisfied (Path is satisfied)' -T 'flow path'",'device_ipaddr');
+                    device_object.ipaddr = await cli_exec("grep -A1 \""+device_object.name.replace('+', '.*')+"\" /var/db/dhcpd_leases", 'device_ipaddr');
                   }
                   devices.push(device_object);
                   console.log("[DCM] [listener.js] ["+getTime("log")+"] Found Device:", device_object);
                 }
-                if(counter >= data.length -1){
+                if(counter >= Object.keys(data).length -1){
                   resolve();
                 } else {
                   counter++
@@ -145,12 +145,12 @@ function cli_exec(command,type){
               let ip_line = '';
               let log_data = stdout.split("\n");
               for(var line of log_data){
-                if(line.includes("<->IPv4")){
+                if(line.includes("ip_address")){
                   ip_line = line;
                   break;
                 }
               }
-              let ip_strings = ip_line.split(/ |:/);
+              let ip_strings = ip_line.split("=");
               for(var line of ip_strings){
                 if(line.includes("192.168.")){
                   ipaddr = line;
