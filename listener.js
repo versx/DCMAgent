@@ -23,7 +23,7 @@ server.use(function(req, res, next) {
 //  GET LOCAL DEVICE INFORMATION
 //------------------------------------------------------------------------------
 var devices = [];
-cli_exec("ios-deploy -c","device_identification");
+cli_exec("cfgutil --format JSON list","device_identification");
 
 //------------------------------------------------------------------------------
 //  PAYLOAD PROCESSING
@@ -78,6 +78,48 @@ server.post("/", (payload, res) => {
           }
         }
         break;
+
+      // REAPPLY THE SAM PROFILE
+      case "profile":
+        if(device.name == target.device){
+          // REMOVE THE SAM PROFILE
+          var profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to remove the SAM1 profile from "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to remove the SAM1 profile.' });
+            break;
+          }
+
+          // APPLY THE CLOCK PROFILE TO FORCE THE GAME CLOSED
+          profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt install-profile sam_clock.mobileconfig","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to add the SAM_CLOCK profile to "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to add the SAM_CLOCK profile.' });
+            break;
+          }
+
+          // REMOVE THE SAM PROFILE AGAIN
+          profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to remove the SAM2 profile from "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to remove the SAM2 profile.' });
+            break;
+          }
+
+          // APPLY THE POGO PROFILE TO RELAUNCH THE GAME
+          profile = await cli_exec("cfgutil -e "+device.ecid+" -K org.der -C org.crt install-profile sam_pogo.mobileconfig","device_command");
+          if(profile.hasError){
+            console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to add the SAM_CALC profile to "+device.name+" : "+device.uuid+".",response.error);
+            res.json({ status: 'error', node: config.name, error:'Failed to add the SAM_POGO profile.' });
+            break;
+          }
+
+          // REAPPLICATION WAS SUCCESSFUL
+          console.log("[DCM] [listener.js] ["+getTime("log")+"] Reapplied the SAM profile to "+device.name+" : "+device.uuid+".");
+          // SEND CONFIRMATION TO DCM
+          res.json({ status: 'ok' });
+        }
+        break;
     }
   }); return;
 });
@@ -99,23 +141,26 @@ function cli_exec(command,type){
           // INITIAL DEVICE IDENTIFICATION FOR DEVICE ARRAY
           case 'device_identification':
             let data = stdout.split("\n");
+            json = JSON.parse(data[0]);
+            data = json.Output;
             var forloop = new Promise( async function(resolve, reject){
               var counter = 0;
-              await data.forEach(async (device,i) => {
-                if(device.includes('iPhone') || device.includes('iPad')){
+              await Object.keys(data).forEach(async (device) => {
+                if(data[device].deviceType.includes('iPhone') || data[device].deviceType.includes('iPad')){
                   let device_object = {};
-                  device_object.name = device.split("'")[1];
-                  device_object.uuid = device.split(" ")[2];
+                  device_object.name = data[device].name;
+                  device_object.uuid = data[device].UDID;
+                  device_object.ecid = data[device].ECID;
                   // Look for WiFi addresses since it's quick
                   device_object.ipaddr = await cli_exec("ping -t 1 "+device_object.name,'device_ipaddr');
                   if(device_object.ipaddr == ''){
                     // Look for tethered addresses and blanks. This takes a while
-                    device_object.ipaddr = await cli_exec("idevicesyslog -u "+device_object.uuid+" -m '192.168.' -T 'IPv4'",'device_ipaddr');
+                    device_object.ipaddr = await cli_exec("grep -A1 \""+device_object.name.replace('+', '.*')+"\" /var/db/dhcpd_leases", 'device_ipaddr');
                   }
                   devices.push(device_object);
                   console.log("[DCM] [listener.js] ["+getTime("log")+"] Found Device:", device_object);
                 }
-                if(counter >= data.length -1){
+                if(counter >= Object.keys(data).length -1){
                   resolve();
                 } else {
                   counter++
@@ -142,17 +187,21 @@ function cli_exec(command,type){
               let ip_line = '';
               let log_data = stdout.split("\n");
               for(var line of log_data){
-                if(line.includes("<->IPv4")){
+                if(line.includes("ip_address")){
                   ip_line = line;
                   break;
                 }
               }
-              let ip_strings = ip_line.split(/ |:/);
+              let ip_strings = ip_line.split("=");
               for(var line of ip_strings){
                 if(line.includes("192.168.")){
                   ipaddr = line;
                   break;
                 }
+              }
+              if(ipaddr == ''){
+                // Rarely, it may still be blank, check the log again
+                ipaddr = await cli_exec(command,'device_ipaddr');
               }
             }
             return resolve(ipaddr);
