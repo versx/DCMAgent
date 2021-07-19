@@ -1,0 +1,14 @@
+[
+  {
+    "name":"001-SE",
+    "uuid":"f0axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9af",
+    "ecid":"0x9000000000006",
+    "ipaddr":"192.168.1.1"
+  },
+  {
+    "name":"002-SE",
+    "uuid":"f0axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9af",
+    "ecid":"0x9000000000006",
+    "ipaddr":"192.168.1.2"
+  }
+]

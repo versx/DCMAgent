@@ -10,10 +10,10 @@
 7.) Install latest `libplist` `brew install --HEAD libplist`   
 8.) Install latest `libimobiledevice` `brew install --HEAD libimobiledevice`  
 9.) Install `ideviceinstaller` `brew install ideviceinstaller`  
-10.) Navigate to the App Store and download/install Apple Configurator 2 (AC2).
-11.) In AC2, click on the `Apple Configurator 2` menu and choose `Install Automation Tools`.
-12.) In AC2, click on the `Apple Configurator 2` menu and choose `Preferences` > `Organization` > click on your org and choose `Export Supervision Identity` in the bottom left.
-13.) Move the .crt and .der files to the DCMRemoteListener folder and rename them to `org.crt` and `org.der`.
+10.) Navigate to the App Store and download/install Apple Configurator 2 (AC2)
+11.) In AC2, click on the `Apple Configurator 2` menu and choose `Install Automation Tools`
+12.) In AC2, click on the `Apple Configurator 2` menu and choose `Preferences` > `Organization` > click on your org and choose `Export Supervision Identity` in the bottom left
+13.) Move the .crt and .der files to the DCMRemoteListener folder and rename them to `org.crt` and `org.der`
 
 ## Installation  
 1.) Clone repository `git clone https://github.com/versx/DCMRemoteListener`  
@@ -26,6 +26,15 @@
   * Domain (i.e. `http://10.0.0.2:9991` or `https://dcm.domain.com`) is the DeviceConfigManager domain that will be sending the reboot request, otherwise set to `*` to accept from all hosts.
 
 6.) Start the bot with `pm2 start listener.js` or `node listener.js` if not using pm2  
+
+## Config Options
+```
+"name" = The name you want to use for this server.
+"port" = The inbound TCP port for requests.
+"domain" = The domain that is allowed to send requests.
+"manual_list" = True/False for creating your own JSON list of devices as device.json. See device.example.json.
+"manual_ip" = True/False for adding the IP to the device.json or to allow the script to find IPs.
+```
 
 ## Discord  
 https://discordapp.com/invite/zZ9h9Xa  
