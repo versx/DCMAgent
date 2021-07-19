@@ -57,10 +57,9 @@ server.post("/", (payload, res) => {
                             node: config.name,
                             error: 'Failed to restart device.'
                         });
-
-                        // RESTART WAS SUCCESSFUL
                     }
                     else {
+                        // RESTART WAS SUCCESSFUL
                         console.log("[DCM] [listener.js] [" + getTime("log") + "] Restarted " + device.name + " : " + device.uuid + ".");
 
                         // SEND CONFIRMATION TO DCM
@@ -71,7 +70,7 @@ server.post("/", (payload, res) => {
                 }
                 break;
 
-                // REOPEN THE GAME
+            // REOPEN THE GAME
             case "reopen":
                 if (device.name == target.device) {
                     var ipaddr = '';
@@ -104,10 +103,9 @@ server.post("/", (payload, res) => {
                             node: config.name,
                             error: 'Failed to reopen game.'
                         });
-
-                        // RESTART WAS SUCCESSFUL
                     }
                     else {
+                        // RESTART WAS SUCCESSFUL
                         console.log("[DCM] [listener.js] [" + getTime("log") + "] Reopened the game for " + device.name + " : " + device.uuid + ".");
 
                         // SEND CONFIRMATION TO DCM
@@ -118,7 +116,7 @@ server.post("/", (payload, res) => {
                 }
                 break;
 
-                // REAPPLY THE SAM PROFILE
+            // REAPPLY THE SAM PROFILE
             case "profile":
                 if (device.name == target.device) {
                     // REMOVE THE SAM PROFILE
@@ -218,7 +216,7 @@ function cli_exec(command, type) {
                                     resolve();
                                 }
                                 else {
-                                    counter++
+                                    counter++;
                                 }
                             });
                         });
@@ -229,7 +227,7 @@ function cli_exec(command, type) {
                         });
                         break;
 
-                        // GET IP INFO
+                    // GET IP INFO
                     case 'device_ipaddr':
                         let ipaddr = '';
                         if (!err && command.includes('ping')) {
@@ -261,7 +259,7 @@ function cli_exec(command, type) {
                         }
                         return resolve(ipaddr);
 
-                        // GENERAL IDEVICEDIAGNOSTICS COMMAND
+                    // GENERAL IDEVICEDIAGNOSTICS COMMAND
                     case 'device_command':
                         response.hasError = false;
                         response.result = stdout;

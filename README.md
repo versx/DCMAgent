@@ -10,10 +10,10 @@
 7.) Install latest `libplist` `brew install --HEAD libplist`   
 8.) Install latest `libimobiledevice` `brew install --HEAD libimobiledevice`  
 9.) Install `ideviceinstaller` `brew install ideviceinstaller`  
-10.) Navigate to the App Store and download/install Apple Configurator 2 (AC2)
-11.) In AC2, click on the `Apple Configurator 2` menu and choose `Install Automation Tools`
-12.) In AC2, click on the `Apple Configurator 2` menu and choose `Preferences` > `Organization` > click on your org and choose `Export Supervision Identity` in the bottom left
-13.) Move the .crt and .der files to the DCMRemoteListener folder and rename them to `org.crt` and `org.der`
+10.) Navigate to the App Store and download/install Apple Configurator 2 (AC2)<br>
+11.) In AC2, click on the `Apple Configurator 2` menu and choose `Install Automation Tools`<br>
+12.) In AC2, click on the `Apple Configurator 2` menu and choose `Preferences` > `Organization` > click on your org and choose `Export Supervision Identity` in the bottom left<br>
+13.) Move the .crt and .der files to the DCMRemoteListener folder and rename them to `org.crt` and `org.der`<br>
 
 ## Installation  
 1.) Clone repository `git clone https://github.com/versx/DCMRemoteListener`  
