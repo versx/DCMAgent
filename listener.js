@@ -175,10 +175,31 @@ server.post("/", (payload, res) => {
                     });
                 }
                 break;
-        }
-    });
-    return;
-});
+
+          // CHANGE DEVICE BRIGHTNESS
+          case "brightness":
+            if(device.name == target.device){
+              let brightness = await cli_exec("curl -X POST http://"+device.ipaddr+":8080/brightness?value="+target.value,"device_command");
+
+              // THERE WAS AN ERROR WITH CURL
+              if(brightness.hasError){
+                console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to change brightness for "+device.name+" : "+device.uuid+".",response.error);
+
+                // SEND ERROR TO DCM
+                res.json({ status: 'error', node: config.name, error:'Failed to change device brightness.' });
+
+              // CHANGE WAS SUCCESSFUL
+              } else {
+                console.log("[DCM] [listener.js] ["+getTime("log")+"] Device brightness was changed to "+target.value+"% for "+device.name+" : "+device.uuid+".");
+
+                // SEND CONFIRMATION TO DCM
+                res.json({ status: 'ok' });
+              }
+            }
+            break;
+      }
+  });
+}
 
 //------------------------------------------------------------------------------
 //  COMMAND LINE EXECUTION
