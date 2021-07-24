@@ -1,5 +1,7 @@
 {
     "name": "Scanner 1",
     "port": 6542,
-    "domain": "http://YOUR-DOMAIN.TLD"
+    "domain": "http://YOUR-DOMAIN.TLD",
+    "manual_list": false,
+    "manual_ip": false
 }
