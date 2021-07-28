@@ -36,7 +36,7 @@ else {
 //  PAYLOAD PROCESSING
 //------------------------------------------------------------------------------
 server.post("/", (payload, res) => {
-    console.log("[DCM] [listener.js] [" + getTime("log") + "] Received a Payload:", payload.body)
+    console.log("[DCM] [listener.js] [" + getTime("log") + "] Received a Payload:", payload.body);
     let target = payload.body;
     // GO THROUGH DEVICE ARRAY TO FIND A MATCH
     devices.forEach(async (device, i) => {
@@ -176,30 +176,37 @@ server.post("/", (payload, res) => {
                 }
                 break;
 
-          // CHANGE DEVICE BRIGHTNESS
-          case "brightness":
-            if(device.name == target.device){
-              let brightness = await cli_exec("curl -X POST http://"+device.ipaddr+":8080/brightness?value="+target.value,"device_command");
+            // CHANGE DEVICE BRIGHTNESS
+            case "brightness":
+                if (device.name == target.device) {
+                    let brightness = await cli_exec("curl -X POST http://" + device.ipaddr + ":8080/brightness?value=" + target.value, "device_command");
 
-              // THERE WAS AN ERROR WITH CURL
-              if(brightness.hasError){
-                console.error("[DCM] [listener.js] ["+getTime("log")+"] Failed to change brightness for "+device.name+" : "+device.uuid+".",response.error);
+                    // THERE WAS AN ERROR WITH CURL
+                    if (brightness.hasError) {
+                        console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to change brightness for " + device.name + " : " + device.uuid + ".", brightness.error);
 
-                // SEND ERROR TO DCM
-                res.json({ status: 'error', node: config.name, error:'Failed to change device brightness.' });
+                        // SEND ERROR TO DCM
+                        res.json({
+                            status: 'error',
+                            node: config.name,
+                            error: 'Failed to change device brightness.'
+                        });
 
-              // CHANGE WAS SUCCESSFUL
-              } else {
-                console.log("[DCM] [listener.js] ["+getTime("log")+"] Device brightness was changed to "+target.value+"% for "+device.name+" : "+device.uuid+".");
+                        // CHANGE WAS SUCCESSFUL
+                    }
+                    else {
+                        console.log("[DCM] [listener.js] [" + getTime("log") + "] Device brightness was changed to " + target.value + "% for " + device.name + " : " + device.uuid + ".");
 
-                // SEND CONFIRMATION TO DCM
-                res.json({ status: 'ok' });
-              }
-            }
-            break;
-      }
-  });
-}
+                        // SEND CONFIRMATION TO DCM
+                        res.json({
+                            status: 'ok'
+                        });
+                    }
+                }
+                break;
+        }
+    });
+});
 
 //------------------------------------------------------------------------------
 //  COMMAND LINE EXECUTION
@@ -220,7 +227,7 @@ function cli_exec(command, type) {
                     // INITIAL DEVICE IDENTIFICATION FOR DEVICE ARRAY
                     case 'device_identification':
                         let data = stdout.split("\n");
-                        json = JSON.parse(data[0]);
+                        let json = JSON.parse(data[0]);
                         data = json.Output;
                         var forloop = new Promise(async function(resolve, reject) {
                             var counter = 0;
