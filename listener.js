@@ -85,7 +85,7 @@ server.post("/", (payload, res) => {
                             ipaddr = await cli_exec("grep -A1 \"" + device.name.replace('+', '.*') + "\" /var/db/dhcpd_leases", 'device_ipaddr');
                         }
                     }
-                    let reopen = await cli_exec("curl http://" + ipaddr + ":8080/restart", "device_command");
+                    let reopen = await cli_exec("curl --connect-timeout 10 -m 10 http://" + ipaddr + ":8080/restart", "device_command");
 
                     // THERE WAS AN ERROR WITH CURL
                     if (reopen.hasError) {
@@ -197,7 +197,7 @@ server.post("/", (payload, res) => {
                             ipaddr = await cli_exec("grep -A1 \"" + device.name.replace('+', '.*') + "\" /var/db/dhcpd_leases", 'device_ipaddr');
                         }
                     }
-                    let brightness = await cli_exec("curl -X POST http://" + ipaddr + ":8080/brightness?value=" + target.value, "device_command");
+                    let brightness = await cli_exec("curl --connect-timeout 10 -m 10 -X POST http://" + ipaddr + ":8080/brightness?value=" + target.value, "device_command");
 
                     // THERE WAS AN ERROR WITH CURL
                     if (brightness.hasError) {
