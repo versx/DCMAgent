@@ -41,3 +41,5 @@ https://discordapp.com/invite/zZ9h9Xa
 
 ## Troubleshooting
 If the cfgutil from AC2 does not list any devices when you use the `cfgutil list` command, then you may need to upgrade AC2 and reinstall the automation tools.
+
+If the `Connection timed out` or `Connection refused` errors continuously happen for iOS 14 devices, go into Settings > Pokemon Go (at the bottom) > Toggle `Local Network` on. This will allow cURL to connect to the IPA.
