@@ -85,7 +85,7 @@ server.post("/", (payload, res) => {
                             ipaddr = await cli_exec("grep -A1 \"" + device.name.replace('+', '.*') + "\" /var/db/dhcpd_leases", 'device_ipaddr');
                         }
                     }
-                    let reopen = await cli_exec("curl --connect-timeout 10 -m 10 http://" + ipaddr + ":8080/restart", "device_command");
+                    const reopen = await cli_exec("curl --connect-timeout 10 -m 10 http://" + ipaddr + ":8080/restart", "device_command");
 
                     // THERE WAS AN ERROR WITH CURL
                     if (reopen.hasError) {
@@ -185,19 +185,19 @@ server.post("/", (payload, res) => {
             // CHANGE DEVICE BRIGHTNESS
             case "brightness":
                 if (device.name == target.device) {
-                    var ipaddr = '';
+                    let ipaddr = '';
                     if (config.manual_ip) {
                         ipaddr = device.ipaddr;
                     }
                     else {
                         // Look for WiFi addresses since it's quick
                         ipaddr = await cli_exec("ping -t 1 " + device.name, 'device_ipaddr');
-                        if (ipaddr == '') {
+                        if (!ipaddr) {
                             // Look for tethered addresses and blanks. This takes a while
                             ipaddr = await cli_exec("grep -A1 \"" + device.name.replace('+', '.*') + "\" /var/db/dhcpd_leases", 'device_ipaddr');
                         }
                     }
-                    let brightness = await cli_exec("curl --connect-timeout 10 -m 10 -X POST http://" + ipaddr + ":8080/brightness?value=" + target.value, "device_command");
+                    const brightness = await cli_exec("curl --connect-timeout 10 -m 10 -X POST http://" + ipaddr + ":8080/brightness?value=" + target.value, "device_command");
 
                     // THERE WAS AN ERROR WITH CURL
                     if (brightness.hasError) {
