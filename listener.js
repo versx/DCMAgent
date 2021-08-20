@@ -85,13 +85,19 @@ server.post("/", (payload, res) => {
                             ipaddr = await cli_exec("grep -A1 \"" + device.name.replace('+', '.*') + "\" /var/db/dhcpd_leases", 'device_ipaddr');
                         }
                     }
-                    let reopen = await cli_exec("curl http://" + ipaddr + ":8080/restart", "device_command");
+                    const reopen = await cli_exec("curl --connect-timeout 10 -m 10 http://" + ipaddr + ":8080/restart", "device_command");
 
                     // THERE WAS AN ERROR WITH CURL
                     if (reopen.hasError) {
                         console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to reopen game for " + device.name + " : " + device.uuid + ".");
                         if (reopen.error.toString().includes("Connection refused")) {
                             console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection was refused to IP " + ipaddr + ".");
+                        }
+                        else if (reopen.error.toString().includes("Operation timed out")) {
+                            console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection timed out for IP " + ipaddr + ".");
+                        }
+                        else if (reopen.error.toString().includes("Connection reset by peer")) {
+                            console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection was disconnected for IP " + ipaddr + ".");
                         }
                         else {
                             console.error(reopen.error);
@@ -179,11 +185,35 @@ server.post("/", (payload, res) => {
             // CHANGE DEVICE BRIGHTNESS
             case "brightness":
                 if (device.name == target.device) {
-                    let brightness = await cli_exec("curl -X POST http://" + device.ipaddr + ":8080/brightness?value=" + target.value, "device_command");
+                    let ipaddr = '';
+                    if (config.manual_ip) {
+                        ipaddr = device.ipaddr;
+                    }
+                    else {
+                        // Look for WiFi addresses since it's quick
+                        ipaddr = await cli_exec("ping -t 1 " + device.name, 'device_ipaddr');
+                        if (!ipaddr) {
+                            // Look for tethered addresses and blanks. This takes a while
+                            ipaddr = await cli_exec("grep -A1 \"" + device.name.replace('+', '.*') + "\" /var/db/dhcpd_leases", 'device_ipaddr');
+                        }
+                    }
+                    const brightness = await cli_exec("curl --connect-timeout 10 -m 10 -X POST http://" + ipaddr + ":8080/brightness?value=" + target.value, "device_command");
 
                     // THERE WAS AN ERROR WITH CURL
                     if (brightness.hasError) {
-                        console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to change brightness for " + device.name + " : " + device.uuid + ".", brightness.error);
+                        console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to change brightness for " + device.name + " : " + device.uuid + ".");
+                        if (reopen.error.toString().includes("Connection refused")) {
+                            console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection was refused to IP " + ipaddr + ".");
+                        }
+                        else if (reopen.error.toString().includes("Operation timed out")) {
+                            console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection timed out for IP " + ipaddr + ".");
+                        }
+                        else if (reopen.error.toString().includes("Connection reset by peer")) {
+                            console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection was disconnected for IP " + ipaddr + ".");
+                        }
+                        else {
+                            console.error(reopen.error);
+                        }
 
                         // SEND ERROR TO DCM
                         res.json({
