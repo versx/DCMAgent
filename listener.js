@@ -28,7 +28,9 @@ if (config.manual_list) {
     console.log("[DCM] [listener.js] [" + getTime("log") + "] ", devices);
     console.log("[DCM] [listener.js] [" + getTime("log") + "] Total Devices: " + devices.length);
 }
-else {
+else if (config.use_ios_deploy) {
+    cli_exec("ios-deploy -c","device_identification");
+} else {
     cli_exec("cfgutil --format JSON list", "device_identification");
 }
 
@@ -256,28 +258,50 @@ function cli_exec(command, type) {
 
                     // INITIAL DEVICE IDENTIFICATION FOR DEVICE ARRAY
                     case 'device_identification':
-                        let data = stdout.split("\n");
-                        let json = JSON.parse(data[0]);
-                        data = json.Output;
-                        var forloop = new Promise(async function(resolve, reject) {
-                            var counter = 0;
-                            await Object.keys(data).forEach(async (device) => {
-                                if (data[device].deviceType.includes('iPhone') || data[device].deviceType.includes('iPad')) {
-                                    let device_object = {};
-                                    device_object.name = data[device].name;
-                                    device_object.uuid = data[device].UDID;
-                                    device_object.ecid = data[device].ECID;
-                                    devices.push(device_object);
-                                    console.log("[DCM] [listener.js] [" + getTime("log") + "] Found Device:", device_object);
-                                }
-                                if (counter >= Object.keys(data).length - 1) {
-                                    resolve();
-                                }
-                                else {
-                                    counter++;
-                                }
+                        if (config.use_ios_deploy) {
+                            let data = stdout.split("\n");
+                            var forloop = new Promise(async function(resolve, reject) {
+                                var counter = 0;
+                                await data.forEach(async (device,i) => {
+                                    if((device.includes('iPhone') || device.includes('iPad')) && !devices.some(d=>d.uuid===device.split(" ")[2])) {
+                                        let device_object = {};
+                                        device_object.name = device.split("'")[1];
+                                        device_object.uuid = device.split(" ")[2];
+                                        devices.push(device_object);
+                                        console.log("[DCM] [listener.js] [" + getTime("log") + "] Found Device:", device_object);
+                                    }
+                                    if (counter >= Object.keys(data).length - 1) {
+                                        resolve();
+                                    }
+                                    else {
+                                        counter++;
+                                    }
+                                });
                             });
-                        });
+                        } else {
+                            let data = stdout.split("\n");
+                            let json = JSON.parse(data[0]);
+                            data = json.Output;
+                            var forloop = new Promise(async function(resolve, reject) {
+                                var counter = 0;
+                                await Object.keys(data).forEach(async (device) => {
+                                    if (data[device].deviceType.includes('iPhone') || data[device].deviceType.includes('iPad')) {
+                                        let device_object = {};
+                                        device_object.name = data[device].name;
+                                        device_object.uuid = data[device].UDID;
+                                        device_object.ecid = data[device].ECID;
+                                        devices.push(device_object);
+                                        console.log("[DCM] [listener.js] [" + getTime("log") + "] Found Device:", device_object);
+                                    }
+                                    if (counter >= Object.keys(data).length - 1) {
+                                        resolve();
+                                    }
+                                    else {
+                                        counter++;
+                                    }
+                                });
+                            });
+                        }
 
                         forloop.then(() => {
                             console.log("[DCM] [listener.js] [" + getTime("log") + "] Total Devices: " + devices.length);
