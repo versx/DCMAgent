@@ -34,6 +34,7 @@
 "domain" = The domain that is allowed to send requests.
 "manual_list" = True/False for creating your own JSON list of devices as device.json. See device.example.json.
 "manual_ip" = True/False for adding the IP to the device.json or to allow the script to find IPs.
+"use_ios_deploy" = True/False for using ios-deploy instead of cfgutil for querying devices (disables the profile command).
 ```
 
 ## Discord  
