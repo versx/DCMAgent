@@ -263,7 +263,7 @@ function cli_exec(command, type) {
                             var forloop = new Promise(async function(resolve, reject) {
                                 var counter = 0;
                                 await data.forEach(async (device,i) => {
-                                    if((device.includes('iPhone') || device.includes('iPad')) && !devices.some(d=>d.uuid===device.split(" ")[2])) {
+                                    if (device.match(/iPhone|iPad|iPod/g) && !devices.some(d => d.uuid === device.split(' ')[2])) {
                                         let device_object = {};
                                         device_object.name = device.split("'")[1];
                                         device_object.uuid = device.split(" ")[2];
@@ -285,7 +285,7 @@ function cli_exec(command, type) {
                             var forloop = new Promise(async function(resolve, reject) {
                                 var counter = 0;
                                 await Object.keys(data).forEach(async (device) => {
-                                    if (data[device].deviceType.includes('iPhone') || data[device].deviceType.includes('iPad')) {
+                                    if (data[device].deviceType.match(/iPhone|iPad|iPod/g)) {
                                         let device_object = {};
                                         device_object.name = data[device].name;
                                         device_object.uuid = data[device].UDID;
