@@ -134,7 +134,6 @@ server.post("/", (payload, res) => {
                             node: config.name,
                             error: 'Failed to remove the SAM1 profile.'
                         });
-                        break;
                     }
 
                     // APPLY THE CLOCK PROFILE TO FORCE THE GAME CLOSED
@@ -146,7 +145,6 @@ server.post("/", (payload, res) => {
                             node: config.name,
                             error: 'Failed to add the SAM_CLOCK profile.'
                         });
-                        break;
                     }
 
                     // REMOVE THE SAM PROFILE AGAIN
@@ -158,7 +156,6 @@ server.post("/", (payload, res) => {
                             node: config.name,
                             error: 'Failed to remove the SAM2 profile.'
                         });
-                        break;
                     }
 
                     // APPLY THE POGO PROFILE TO RELAUNCH THE GAME
