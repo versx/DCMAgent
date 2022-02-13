@@ -3,5 +3,6 @@
     "port": 6542,
     "domain": "http://YOUR-DOMAIN.TLD",
     "manual_list": false,
-    "manual_ip": false
+    "manual_ip": false,
+    "use_ios_deploy": false
 }
