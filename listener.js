@@ -126,7 +126,7 @@ server.post("/", (payload, res) => {
 
             // REAPPLY THE SAM PROFILE
             case "profile":
-                if (device.name == target.device) {
+                if (!config.use_ios_deploy && device.name == target.device) {
                     // REMOVE THE SAM PROFILE
                     var profile = await cli_exec("cfgutil -e " + device.ecid + " -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode", "device_command");
                     if (profile.hasError) {
