@@ -1,3 +1,7 @@
+[![GitHub Contributors](https://img.shields.io/github/contributors/versx/DCMRemoteListener.svg)](https://github.com/versx/DCMRemoteListener/graphs/contributors/)
+[![Discord](https://img.shields.io/discord/552003258000998401.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zZ9h9Xa)  
+
+
 # DCMRemoteListener  
 
 ## Prerequisites  
@@ -36,9 +40,6 @@
 "manual_ip" = True/False for adding the IP to the device.json or to allow the script to find IPs.
 "use_ios_deploy" = True/False for using ios-deploy instead of cfgutil for querying devices (disables the profile command).
 ```
-
-## Discord  
-https://discordapp.com/invite/zZ9h9Xa  
 
 ## Troubleshooting
 If the cfgutil from AC2 does not list any devices when you use the `cfgutil list` command, then you may need to upgrade AC2 and reinstall the automation tools.
