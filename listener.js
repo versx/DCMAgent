@@ -201,17 +201,17 @@ server.post("/", (payload, res) => {
                     // THERE WAS AN ERROR WITH CURL
                     if (brightness.hasError) {
                         console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to change brightness for " + device.name + " : " + device.uuid + ".");
-                        if (reopen.error.toString().includes("Connection refused")) {
+                        if (brightness.error.toString().includes("Connection refused")) {
                             console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection was refused to IP " + ipaddr + ".");
                         }
-                        else if (reopen.error.toString().includes("Operation timed out")) {
+                        else if (brightness.error.toString().includes("Operation timed out")) {
                             console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection timed out for IP " + ipaddr + ".");
                         }
-                        else if (reopen.error.toString().includes("Connection reset by peer")) {
+                        else if (brightness.error.toString().includes("Connection reset by peer")) {
                             console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection was disconnected for IP " + ipaddr + ".");
                         }
                         else {
-                            console.error(reopen.error);
+                            console.error(brightness.error);
                         }
 
                         // SEND ERROR TO DCM
