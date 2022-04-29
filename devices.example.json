@@ -6,6 +6,13 @@
     "ipaddr":"192.168.1.1"
   },
   {
+    "name":"atv-01",
+    "uuid":"",
+    "ecid":"",
+    "ipaddr":"192.168.1.1",
+    "reboot_cmd": "./custom_reboot.sh atv-01"
+  },
+  {
     "name":"002-SE",
     "uuid":"f0axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9af",
     "ecid":"0x9000000000006",

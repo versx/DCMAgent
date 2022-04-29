@@ -41,6 +41,13 @@
 "use_ios_deploy" = True/False for using ios-deploy instead of cfgutil for querying devices (disables the profile command).
 ```
 
+## Android support
+There is limited support for using Android devices. If a mitm client sends their status to RDM we can use the same logic to trigger reboots. Currently you can use the `manual_list: true` to supply a custom script via `reboot_cmd` to reboot devices. Since power relays can be triggered via http calls, custom API methods, and are unique per vendor this is a batteries not included option.
+
+Game restarts, SAM, etc do not apply to these devices and error messages can be ignored.
+
+For iOS devices please leave `reboot_cmd` empty or delete the line!
+
 ## Troubleshooting
 If the cfgutil from AC2 does not list any devices when you use the `cfgutil list` command, then you may need to upgrade AC2 and reinstall the automation tools.
 
