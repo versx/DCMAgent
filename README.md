@@ -39,14 +39,13 @@
 "manual_list" = True/False for creating your own JSON list of devices as device.json. See device.example.json.
 "manual_ip" = True/False for adding the IP to the device.json or to allow the script to find IPs.
 "use_ios_deploy" = True/False for using ios-deploy instead of cfgutil for querying devices (disables the profile command).
+"allow_cmds" = True/False for allowing the execution of local commands that are defined in "cmds".
+"cmds" = An array of objects that contain the "alias" (required), "command" (required), and "description" (optional).
+         "alias" is the name that you can send to the listener to execute a command without typing the full command.
+         "command" is a string used to hold the command and its parameters. Note that you should use nohup if the command's error output is larger than 200kb like Redux.
+         "description" is a string that you can use to keep notes about your command.
+         Note that passing parameters or using sudo are not supported as these open your system to attacks.
 ```
-
-## Android support
-If a mitm client sends their status to RDM we can use the same logic to trigger reboots via the `rebootMonitorURL` endpoint. Currently you must use the `manual_list: true` to supply a custom script via the `reboot_cmd` option to reboot devices. All other endpoints (`reopenMonitorURL`, `reapplySAMMonitorURL`, `brightnessMonitorURL`) are not supported since they are iOS specific. Power relays can be triggered via http calls, custom API methods, and are unique per vendor as such this is a batteries not included option.
-
-It is recommended that you setup multiple DCMRL instances if running iOS and Android on the same host machine. This allows you to keep the automatic iOS device list detection plus reopen, reapply sam, and brightness commands can all point to one instance. Then Android devices will only receive the reboot commands keeping for clean logs.
-
-For iOS devices please leave `reboot_cmd` empty or delete the line!
 
 ## Troubleshooting
 If the cfgutil from AC2 does not list any devices when you use the `cfgutil list` command, then you may need to upgrade AC2 and reinstall the automation tools.

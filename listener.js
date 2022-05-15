@@ -8,6 +8,7 @@ const Request = require("request");
 const express = require("express");
 const { exec } = require("child_process");
 const config = require("./config.json");
+const cmds = config.cmds;
 
 // DEFINE THE EXPRESS SERVER
 var server = express().use(express.json({ limit: "1mb" }));
@@ -40,12 +41,13 @@ else if (config.use_ios_deploy) {
 server.post("/", (payload, res) => {
     console.log("[DCM] [listener.js] [" + getTime("log") + "] Received a Payload:", payload.body);
     let target = payload.body;
-    // GO THROUGH DEVICE ARRAY TO FIND A MATCH
-    devices.forEach(async (device, i) => {
-        switch (target.type) {
+    // CHECK IF THE PAYLOAD IS FOR DEVICES OR COMMANDS
+    // IF NOT A COMMAND, GO THROUGH DEVICE ARRAY TO FIND A MATCH
+    switch (target.type) {
 
-            // RESTART A DEVICE
-            case "restart":
+        // RESTART A DEVICE
+        case "restart":
+            devices.forEach(async (device, i) => {
                 if (device.name == target.device) {
                     if (device.reboot_cmd) {
                         var command = device.reboot_cmd
@@ -75,10 +77,12 @@ server.post("/", (payload, res) => {
                         });
                     }
                 }
-                break;
+            });
+            break;
 
-            // REOPEN THE GAME
-            case "reopen":
+        // REOPEN THE GAME
+        case "reopen":
+            devices.forEach(async (device, i) => {
                 if (device.name == target.device) {
                     var ipaddr = '';
                     if (config.manual_ip) {
@@ -127,14 +131,26 @@ server.post("/", (payload, res) => {
                         });
                     }
                 }
-                break;
+            });
+            break;
 
-            // REAPPLY THE SAM PROFILE
-            case "profile":
-                if (!config.use_ios_deploy && device.name == target.device) {
+        // REAPPLY THE SAM PROFILE
+        case "profile":
+            if (config.use_ios_deploy) {
+                res.json({
+                    status: 'error',
+                    node: config.name,
+                    error: 'Listener set to only use iOS_Deploy.'
+                });
+                break;
+            }
+            devices.forEach(async (device, i) => {
+                if (device.name == target.device) {
                     // REMOVE THE SAM PROFILE
+                    var errored = false;
                     var profile = await cli_exec("cfgutil -e " + device.ecid + " -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode", "device_command");
                     if (profile.hasError) {
+                        errored = true;
                         console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to remove the SAM1 profile from " + device.name + " : " + device.uuid + ".", profile.error);
                         res.json({
                             status: 'error',
@@ -146,6 +162,7 @@ server.post("/", (payload, res) => {
                     // APPLY THE CLOCK PROFILE TO FORCE THE GAME CLOSED
                     profile = await cli_exec("cfgutil -e " + device.ecid + " -K org.der -C org.crt install-profile sam_clock.mobileconfig", "device_command");
                     if (profile.hasError) {
+                        errored = true;
                         console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to add the SAM_CLOCK profile to " + device.name + " : " + device.uuid + ".", profile.error);
                         res.json({
                             status: 'error',
@@ -157,6 +174,7 @@ server.post("/", (payload, res) => {
                     // REMOVE THE SAM PROFILE AGAIN
                     profile = await cli_exec("cfgutil -e " + device.ecid + " -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode", "device_command");
                     if (profile.hasError) {
+                        errored = true;
                         console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to remove the SAM2 profile from " + device.name + " : " + device.uuid + ".", profile.error);
                         res.json({
                             status: 'error',
@@ -168,26 +186,30 @@ server.post("/", (payload, res) => {
                     // APPLY THE POGO PROFILE TO RELAUNCH THE GAME
                     profile = await cli_exec("cfgutil -e " + device.ecid + " -K org.der -C org.crt install-profile sam_pogo.mobileconfig", "device_command");
                     if (profile.hasError) {
+                        errored = true;
                         console.error("[DCM] [listener.js] [" + getTime("log") + "] Failed to add the SAM_CALC profile to " + device.name + " : " + device.uuid + ".", profile.error);
                         res.json({
                             status: 'error',
                             node: config.name,
                             error: 'Failed to add the SAM_POGO profile.'
                         });
-                        break;
                     }
 
-                    // REAPPLICATION WAS SUCCESSFUL
-                    console.log("[DCM] [listener.js] [" + getTime("log") + "] Reapplied the SAM profile to " + device.name + " : " + device.uuid + ".");
-                    // SEND CONFIRMATION TO DCM
-                    res.json({
-                        status: 'ok'
-                    });
+                    if (!errored) {
+                        // REAPPLICATION WAS SUCCESSFUL
+                        console.log("[DCM] [listener.js] [" + getTime("log") + "] Reapplied the SAM profile to " + device.name + " : " + device.uuid + ".");
+                        // SEND CONFIRMATION TO DCM
+                        res.json({
+                            status: 'ok'
+                        });
+                    }
                 }
-                break;
+            });
+            break;
 
-            // CHANGE DEVICE BRIGHTNESS
-            case "brightness":
+        // CHANGE DEVICE BRIGHTNESS
+        case "brightness":
+            devices.forEach(async (device, i) => {
                 if (device.name == target.device) {
                     let ipaddr = '';
                     if (config.manual_ip) {
@@ -237,9 +259,51 @@ server.post("/", (payload, res) => {
                         });
                     }
                 }
+            });
+            break;
+
+        // INCOMING COMMAND
+        case "cmd":
+            if(!config.allow_cmds) {
+                res.json({
+                    status: 'error',
+                    node: config.name,
+                    error: 'Listener is not configured to execute local commands.'
+                });
                 break;
-        }
-    });
+            }
+            // CHECK IF COMMAND IS IN THE CONFIG
+            cmds.forEach(async (cmd, i) => {
+                if(cmd.alias == target.cmdID) {
+                    var cmd_string = cmd.command.toString();
+                    var cmd_results = await cli_exec(cmd_string, 'local_command');
+                    if(cmd_results.hasError) {
+                        res.json({
+                            status: 'error',
+                            node: config.name,
+                            message: 'Failed to execute command: ' + cmd.alias + '\n' + cmd_results.error
+                        });
+                    }
+                    else {
+                        res.json({
+                            status: 'ok',
+                            node: config.name,
+                            message: 'Listener ran command `'+cmd.alias+'` and output the following:\n'+cmd_results.result
+                        });
+                    }
+                }
+            });
+            break;
+
+        // DEFAULT
+        default:
+            res.json({
+                status: 'error',
+                node: config.name,
+                error: 'Listener received an unhandled request type: ' + target.type
+            });
+            break;
+    }
 });
 
 //------------------------------------------------------------------------------
@@ -342,6 +406,9 @@ function cli_exec(command, type) {
                             }
                         }
                         return resolve(ipaddr);
+
+                    // BLOCK IN CASE WE NEED DIFFERENT INFO FOR LOCAL COMMANDS
+                    case 'local_command':
 
                     // GENERAL IDEVICEDIAGNOSTICS COMMAND
                     case 'device_command':
