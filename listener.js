@@ -47,7 +47,12 @@ server.post("/", (payload, res) => {
             // RESTART A DEVICE
             case "restart":
                 if (device.name == target.device) {
-                    let restart = await cli_exec(`idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`, "device_command");
+                    if (device.reboot_cmd) {
+                        var command = device.reboot_cmd
+                    } else {
+                        var command = `idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`
+                    }
+                    let restart = await cli_exec(command, "device_command");
 
                     // THERE WAS AN ERROR WITH IDEVICEDIAGNOSTICS
                     if (restart.hasError) {

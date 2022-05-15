@@ -41,6 +41,13 @@
 "use_ios_deploy" = True/False for using ios-deploy instead of cfgutil for querying devices (disables the profile command).
 ```
 
+## Android support
+If a mitm client sends their status to RDM we can use the same logic to trigger reboots via the `rebootMonitorURL` endpoint. Currently you must use the `manual_list: true` to supply a custom script via the `reboot_cmd` option to reboot devices. All other endpoints (`reopenMonitorURL`, `reapplySAMMonitorURL`, `brightnessMonitorURL`) are not supported since they are iOS specific. Power relays can be triggered via http calls, custom API methods, and are unique per vendor as such this is a batteries not included option.
+
+It is recommended that you setup multiple DCMRL instances if running iOS and Android on the same host machine. This allows you to keep the automatic iOS device list detection plus reopen, reapply sam, and brightness commands can all point to one instance. Then Android devices will only receive the reboot commands keeping for clean logs.
+
+For iOS devices please leave `reboot_cmd` empty or delete the line!
+
 ## Troubleshooting
 If the cfgutil from AC2 does not list any devices when you use the `cfgutil list` command, then you may need to upgrade AC2 and reinstall the automation tools.
 
