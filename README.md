@@ -1,8 +1,8 @@
-[![GitHub Contributors](https://img.shields.io/github/contributors/versx/DCMRemoteListener.svg)](https://github.com/versx/DCMRemoteListener/graphs/contributors/)
+[![GitHub Contributors](https://img.shields.io/github/contributors/versx/DCMAgent.svg)](https://github.com/versx/DCMAgent/graphs/contributors/)
 [![Discord](https://img.shields.io/discord/552003258000998401.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zZ9h9Xa)  
 
 
-# DCMRemoteListener  
+# DCMAgent (formerly DCMRemoteListener)  
 
 ## Prerequisites  
 1. Install [Homebrew](https://brew.sh) if not already installed `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`  
@@ -17,10 +17,10 @@
 1. Navigate to the App Store and download/install Apple Configurator 2 (AC2)<br>
 1. In AC2, click on the `Apple Configurator 2` menu and choose `Install Automation Tools`<br>
 1. In AC2, click on the `Apple Configurator 2` menu and choose `Preferences` > `Organization` > click on your org and choose `Export Supervision Identity` in the bottom left<br>
-1. Move the .crt and .der files to the DCMRemoteListener folder and rename them to `org.crt` and `org.der`<br>
+1. Move the .crt and .der files to the DCMAgent folder and rename them to `org.crt` and `org.der`<br>
 
 ## Installation  
-1. Clone repository `git clone https://github.com/versx/DCMRemoteListener`  
+1. Clone repository `git clone https://github.com/versx/DCMAgent`  
 1. Install dependencies `npm install`  
 1. Install pm2 (optional) `npm install pm2 -g`  
 1. Copy example config file `cp config.example.json config.json`  
