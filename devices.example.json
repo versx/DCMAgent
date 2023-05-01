@@ -10,7 +10,8 @@
     "uuid":"",
     "ecid":"",
     "ipaddr":"192.168.1.1",
-    "reboot_cmd": "./custom_reboot.sh atv-01"
+    "reopen_cmd": "./custom_reboot.sh reopen atv-01",
+    "reboot_cmd": "./custom_reboot.sh reboot atv-01"
   },
   {
     "name":"002-SE",

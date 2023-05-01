@@ -48,9 +48,9 @@ server.post("/", (payload, res) => {
             case "restart":
                 if (device.name == target.device) {
                     if (device.reboot_cmd) {
-                        var command = device.reboot_cmd
+                        var command = device.reboot_cmd;
                     } else {
-                        var command = `idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`
+                        var command = `idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`;
                     }
                     let restart = await cli_exec(command, "device_command");
 
@@ -92,7 +92,13 @@ server.post("/", (payload, res) => {
                             ipaddr = await cli_exec("grep -A1 \"" + device.name.replace('+', '.*') + "\" /var/db/dhcpd_leases", 'device_ipaddr');
                         }
                     }
-                    const reopen = await cli_exec("curl --connect-timeout 10 -m 10 http://" + ipaddr + ":8080/restart", "device_command");
+                    if (device.reopen_cmd) {
+                        var reopen = await cli_exec(device.reopen_cmd, "device_command");
+                        console.log(reopen.result);
+                    } 
+                    else {
+                        var reopen = await cli_exec("curl --connect-timeout 10 -m 10 http://" + ipaddr + ":8080/restart", "device_command");
+                    }
 
                     // THERE WAS AN ERROR WITH CURL
                     if (reopen.hasError) {
