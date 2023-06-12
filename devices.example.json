@@ -17,6 +17,7 @@
     "name":"002-SE",
     "uuid":"f0axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9af",
     "ecid":"0x9000000000006",
-    "ipaddr":"192.168.1.2"
+    "ipaddr":"192.168.1.2",
+    "reopen_cmd": "./custom_reboot.sh jb_respring 002-SE",
   }
 ]
