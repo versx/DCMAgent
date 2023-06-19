@@ -41,14 +41,19 @@
 "use_ios_deploy" = True/False for using ios-deploy instead of cfgutil for querying devices (disables the profile command).
 ```
 
-## Android support
+## Android Support
 If a mitm client sends their status to RDM we can use the same logic to trigger reopen/reboot via the `reopenMonitorURL`/`rebootMonitorURL` endpoints. You must use the `manual_list: true` to supply a custom script via the `reopen_cmd`/`reboot_cmd` options. All other endpoints (`reapplySAMMonitorURL`, `brightnessMonitorURL`) are not supported since they are iOS specific. Power relays can be triggered via http calls, custom API methods, and are unique per vendor as such this is a batteries not included option. Though, a basic script (`device_management.sh`) has been added that uses ADB commands for these requests. Using that script, you can setup the devices.json file with entries like this `{"name":"A001","uuid":"","ecid":"","reopen_cmd":"./device_management.sh reopen 192.168.1.2 A001","reboot_cmd":"./device_management.sh reboot 192.168.1.2 A001"}`. The variables in the script are "task", "DNS IP", "device name". The DNS IP is either your router or a DNS server that is able to resolve device names. Otherwise, create a similar script for your setup and needs.
 
 It is recommended that you setup multiple DCMRL instances if running iOS and Android on the same host machine. This allows you to keep the automatic iOS device list detection plus reopen, reapply sam, and brightness commands can all point to one instance. Then Android devices will only receive the reboot commands keeping for clean logs.
 
-For jailed iOS devices please leave the `reopen_cmd`/`reboot_cmd` empty or delete the line!
+Other android commands are also available in the device_management.sh script.
 
-For jailbroken iOS devices, a respring command (`jb_respring`) has been added to the example script that can be used in place of the reopen command. You can add entries for iOS devices and populate the `reopen_cmd` like this `"reopen_cmd":"./device_management.sh jb_respring 192.168.2.1 001-SE"`. Note that this command requires your public SSH key to be added to the target device's authorized_keys file and that kernbypass will block this from running while the game is still alive. This example command mainly works for restoring devices that have SAM crashed and the game is closed. In case your JB devices are tethered, the script will also lookup tethered IP addresses.
+# iPhone Support
+For jailed iOS devices please leave the `reopen_cmd`/`reboot_cmd` empty or delete the line! DCMAgent has built-in functionality to run the needed commands.
+
+For reopening jailbroken iOS devices, a `jb_respring` command has been added to the device_management.sh script. You can create a device.json file and add entries for iOS devices. Populate the `reopen_cmd` like this `"reopen_cmd":"./device_management.sh jb_respring 192.168.2.1 001-SE"`. Note that this command requires your public SSH key to be added to the target device's authorized_keys file and that kernbypass will block this from running while the game is still alive. This command mainly works for restoring devices that have SAM crashed and the game is closed. In case your JB devices are tethered, the script will also lookup tethered IP addresses.
+
+For rebooting jailbroken iOS devices, a `jb_reboot` command has been added to the device_management.sh script. You can create a device.json file and add entries for iOS devices. Populate the `reboot_cmd` like this `"reboot_cmd":"./device_management.sh jb_reboot 192.168.2.1 001-SE"`. This command has the same SSH key requirement as above and will even lookup tethered IP addresses. This command should be used when the JB functionality cannot be recovered with the jb_respring and takes 3-6 minutes to complete. You will also need to clone and setup [UIC_Jailbreaker](https://github.com/Kneckter/UIC_Jailbreaker) to be able to automate this command.
 
 ## Troubleshooting
 If the cfgutil from AC2 does not list any devices when you use the `cfgutil list` command, then you may need to upgrade AC2 and reinstall the automation tools.
