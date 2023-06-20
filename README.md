@@ -55,6 +55,8 @@ For reopening jailbroken iOS devices, a `jb_respring` command has been added to 
 
 For rebooting jailbroken iOS devices, a `jb_reboot` command has been added to the device_management.sh script. You can create a device.json file and add entries for iOS devices. Populate the `reboot_cmd` like this `"reboot_cmd":"./device_management.sh jb_reboot 192.168.2.1 001-SE"`. This command has the same SSH key requirement as above and will even lookup tethered IP addresses. This command should be used when the JB functionality cannot be recovered with the jb_respring and takes 3-6 minutes to complete. You will also need to clone and setup [UIC_Jailbreaker](https://github.com/Kneckter/UIC_Jailbreaker) to be able to automate this command.
 
+When setting up the manual device.json file, use one line per device so the device_management.sh script can pull that line of text to parse.
+
 ## Troubleshooting
 If the cfgutil from AC2 does not list any devices when you use the `cfgutil list` command, then you may need to upgrade AC2 and reinstall the automation tools.
 
