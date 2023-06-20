@@ -116,8 +116,10 @@ do
         idevicediagnostics -u $UUID restart
         if [ $? -gt 0 ]; then echo 'Unable to restart device. It may not be connected.'; exit 1; fi
         # Check until it is online again
-        echo 'Waiting until the device is online.'; sleep 20
-        until idevicename -u $UUID > /dev/null 2>&1; do sleep 5; done
+        echo 'Waiting until the device is online.'; sleep 20; count=0
+        until idevicename -u $UUID > /dev/null 2>&1 || [ ! $count -lt 10 ]; do sleep 5; count=`expr $count + 1`; done
+        # If the idevicename attempts were maxed, exit because we cannot connect
+        if [ $count -gt 9 ]; then echo 'Failed to query device. It may not be connected.'; exit 1; fi
         echo $D 'is online again. Removing SAM profile.'
         # Remove the SAM profile. We won't error/exit in case the profile wasn't applied
         cfgutil -e $ECID -K org.der -C org.crt remove-profile com.apple.configurator.singleappmode > /dev/null 2>&1
