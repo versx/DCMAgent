@@ -48,11 +48,11 @@ server.post("/", (payload, res) => {
             case "restart":
                 if (device.name == target.device) {
                     if (device.reboot_cmd) {
-                        var command = device.reboot_cmd;
+                        var restart = await cli_exec(device.reboot_cmd, "device_command");
+                        console.log("[DCM] [listener.js] [" + getTime("log") + "] Results from manual restart command:\n" + restart.result);
                     } else {
-                        var command = `idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`;
+                        var restart = await cli_exec(`idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`, "device_command");
                     }
-                    let restart = await cli_exec(command, "device_command");
 
                     // THERE WAS AN ERROR WITH IDEVICEDIAGNOSTICS
                     if (restart.hasError) {
