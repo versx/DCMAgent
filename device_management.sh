@@ -111,7 +111,7 @@ do
         ECID=$(echo $DATA | cut -d \" -f 12)
         # Check if the UIC_Jailbreaker is installed; else we quit
         ls -l ~/UIC_Jailbreaker > /dev/null 2>&1
-        if [ $? -gt 0 ]; then echo 'Unable to locate ~/UIC_Jailbreaker. It may not be connected.'; exit 1; fi
+        if [ $? -gt 0 ]; then echo 'Unable to locate ~/UIC_Jailbreaker. It may not be installed.'; exit 1; fi
         # Reboot the device
         idevicediagnostics -u $UUID restart
         if [ $? -gt 0 ]; then echo 'Unable to restart device. It may not be connected.'; exit 1; fi
@@ -126,13 +126,22 @@ do
         if [ $? = 0 ]; then echo 'SAM profile successfully removed.'; else 'Could not remove SAM profile. Probably not applied.'; fi
         # Launch the UIC Jailbreaker. We won't error/exit because of false failures when we respring
         echo 'Launching the UIC Jailbreaker. This will take 2 minutes.'; sleep 2
+        # Unlock the keychain using an env var if you want to.
+        #security unlock-keychain -p $DMKEY login.keychain > /dev/null
         # Check if the template exists and make it if it doesn't
         ls -l DerivedData/Template/ > /dev/null 2>&1
-        if [ $? -gt 0 ]; then xcodebuild build-for-testing -workspace ~/UIC_Jailbreaker/UIC_Jailbreaker.xcworkspace -scheme UIC_Jailbreaker -destination generic/platform=iOS -derivedDataPath ./DerivedData/Template > /dev/null 2>&1; fi
+        if [ $? -gt 0 ]
+        then
+            TEXT=""
+            TEXT=$(xcodebuild build-for-testing -workspace ~/UIC_Jailbreaker/UIC_Jailbreaker.xcworkspace -scheme UIC_Jailbreaker -destination generic/platform=iOS -derivedDataPath ./DerivedData/Template 2>&1)
+            if [[ $TEXT == *"errSecInternalComponent"* ]]; then echo "The keystore is locked! Run 'security unlock-keychain login.keychain'"; exit 1; fi
+        fi
         rm -rf DerivedData/$UUID && cp -r DerivedData/Template/ DerivedData/$UUID
-        xcodebuild test-without-building -workspace ~/UIC_Jailbreaker/UIC_Jailbreaker.xcworkspace -scheme UIC_Jailbreaker -destination id=$UUID -destination-timeout 200 -derivedDataPath ./DerivedData/$UUID name=$D > /dev/null 2>&1
+        TEXT=""
+        TEXT=$(xcodebuild test-without-building -workspace ~/UIC_Jailbreaker/UIC_Jailbreaker.xcworkspace -scheme UIC_Jailbreaker -destination id=$UUID -destination-timeout 200 -derivedDataPath ./DerivedData/$UUID name=$D 2>&1)
         if [ $? -gt 0 ]; then echo 'xcodebuild failed tests but it could be a false failure. Continuing.'; else echo 'Closing the unc0ver app.'; fi
         rm -rf DerivedData/$UUID
+        if [[ $TEXT == *"errSecInternalComponent"* ]]; then echo "The keystore is locked! Run 'security unlock-keychain login.keychain'"; exit 1; fi
         # Wait for respring and check for SSH access or fail after 10 attempts
         echo 'Waiting for the respring to finish and the SSH server to come up.'; sleep 10; count=0
         until ssh -o ConnectTimeout=5 root@$IP -t "ls" > /dev/null 2>&1 || [ ! $count -lt 10 ]; do sleep 5; count=`expr $count + 1`; done
