@@ -101,7 +101,7 @@ do
 	elif [[ "$TASK" = 'jb_respring' ]]
 	then
         # This requires the target device to have your public SSH key in the authorized_keys file
-        ssh root@$IP -t "killall kernbypass; if [ $? -gt 0 ]; then echo 'kernbypass not found'; else echo 'kernbypass killed'; fi; sleep 10; sbreload; if [ $? -gt 0 ]; then echo 'failed to reload springboard';else echo 'springboard reloaded'; fi"
+        ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@$IP -t "killall kernbypass; if [ $? -gt 0 ]; then echo 'kernbypass not found'; else echo 'kernbypass killed'; fi; sleep 10; sbreload; if [ $? -gt 0 ]; then echo 'failed to reload springboard';else echo 'springboard reloaded'; fi"
         if [ $? -gt 0 ]; then echo 'Unable to SSH to device. Probably blocked by kernbypass.'; exit 1; fi
 	elif [[ "$TASK" = 'jb_reboot' ]]
 	then
@@ -144,15 +144,15 @@ do
         if [[ $TEXT == *"errSecInternalComponent"* ]]; then echo "The keystore is locked! Run 'security unlock-keychain login.keychain'"; exit 1; fi
         # Wait for respring and check for SSH access or fail after 10 attempts
         echo 'Waiting for the respring to finish and the SSH server to come up.'; sleep 10; count=0
-        until ssh -o ConnectTimeout=5 root@$IP -t "ls" > /dev/null 2>&1 || [ ! $count -lt 10 ]; do sleep 5; count=`expr $count + 1`; done
+        until ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@$IP -t "ls" > /dev/null 2>&1 || [ ! $count -lt 10 ]; do sleep 5; count=`expr $count + 1`; done
         # If the SSH attempts were maxed, that means we did not have a successful rooting check. Reroot the device
         if [ $count -gt 9 ]; then echo 'Failed to SSH to device. JB probably failed to apply.'; exit 1; fi
         # Link config.json to the game directory if the game was updated. I could only get gc to work with unc0ver jb if the gc config was in the game folder. 
         echo 'Checking if config.json is in pogo root.'
         # Move it out of the GC folder and into the Home directory because duplicate config files cause read errors
-        ssh root@$IP -t "mv /var/mobile/Application\ Support/GoCheats/config.json ~/config.json" > /dev/null 2>&1
+        ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@$IP -t "mv /var/mobile/Application\ Support/GoCheats/config.json ~/config.json" > /dev/null 2>&1
         # Copy it from the Home directory into the game root.
-        ssh root@$IP -t "cp ~/config.json /var/containers/Bundle/Application/*/PokmonGO.app/" > /dev/null 2>&1
+        ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@$IP -t "cp ~/config.json /var/containers/Bundle/Application/*/PokmonGO.app/" > /dev/null 2>&1
         if [ $? -gt 0 ]; then echo 'Unable to copy config.json to the game folder.'; exit 1; else echo 'Successfully copied config.json to the game folder.'; fi
         # Reapply the SAM profile
         echo 'Applying SAM profile.'; sleep 2 && cfgutil -e $ECID -K org.der -C org.crt install-profile sam_pogo.mobileconfig > /dev/null 2>&1
