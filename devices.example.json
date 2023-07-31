@@ -13,10 +13,5 @@
     "reopen_cmd": "./custom_reboot.sh reopen atv-01",
     "reboot_cmd": "./custom_reboot.sh reboot atv-01"
   },
-  {
-    "name":"002-SE",
-    "uuid":"f0axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9af",
-    "ecid":"0x9000000000006",
-    "ipaddr":"192.168.1.2"
-  }
+  {"name":"002-SE", "uuid":"f0axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9af", "ecid":"0x9000000000006", "ipaddr":"192.168.1.2", "reopen_cmd": "./custom_reboot.sh jb_respring 002-SE", "reboot_cmd": "./custom_reboot.sh jb_reboot 002-SE"}
 ]

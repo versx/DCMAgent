@@ -48,11 +48,11 @@ server.post("/", (payload, res) => {
             case "restart":
                 if (device.name == target.device) {
                     if (device.reboot_cmd) {
-                        var command = device.reboot_cmd;
+                        var restart = await cli_exec(device.reboot_cmd, "device_command");
+                        console.log("[DCM] [listener.js] [" + getTime("log") + "] Results from manual restart command:\n" + restart.result);
                     } else {
-                        var command = `idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`;
+                        var restart = await cli_exec(`idevicediagnostics${isWindows() ? ".exe" : ""} -u ${device.uuid} restart`, "device_command");
                     }
-                    let restart = await cli_exec(command, "device_command");
 
                     // THERE WAS AN ERROR WITH IDEVICEDIAGNOSTICS
                     if (restart.hasError) {
@@ -94,7 +94,7 @@ server.post("/", (payload, res) => {
                     }
                     if (device.reopen_cmd) {
                         var reopen = await cli_exec(device.reopen_cmd, "device_command");
-                        console.log(reopen.result);
+                        console.log("[DCM] [listener.js] [" + getTime("log") + "] Results from manual reopen command:\n" + reopen.result);
                     } 
                     else {
                         var reopen = await cli_exec("curl --connect-timeout 10 -m 10 http://" + ipaddr + ":8080/restart", "device_command");
@@ -113,7 +113,7 @@ server.post("/", (payload, res) => {
                             console.error("[DCM] [listener.js] [" + getTime("log") + "] The connection was disconnected for IP " + ipaddr + ".");
                         }
                         else {
-                            console.error(reopen.error);
+                            console.error("[DCM] [listener.js] [" + getTime("log") + "] Information from the error:\n" + reopen.error);
                         }
 
                         // SEND ERROR TO DCM
@@ -259,6 +259,7 @@ function cli_exec(command, type) {
                 //console.error("[DCM] [listener.js] ["+getTime("log")+"]", err);
                 response.hasError = true;
                 response.error = err;
+                response.result = stdout;
                 return resolve(response);
             }
             else {
