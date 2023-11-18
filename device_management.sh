@@ -11,7 +11,8 @@ DEVICES=${TEXT//$TASK/}
 DEVICES=${DEVICES//$DNS/}
 
 if [[ "$TASK" != "reboot" ]] && \
-   [[ "$TASK" != "reopen" ]] && \
+   [[ "$TASK" != "reopen_atlas" ]] && \
+   [[ "$TASK" != "reopen_gc" ]] && \
    [[ "$TASK" != "update" ]] && \
    [[ "$TASK" != "pogo_version" ]] && \
    [[ "$TASK" != "tail_logs" ]] && \
@@ -21,7 +22,8 @@ if [[ "$TASK" != "reboot" ]] && \
    [[ "$TASK" != "playstore" ]] && \
    [[ "$TASK" != "jb_respring" ]] && \
    [[ "$TASK" != "jb_reboot" ]] && \
-   [[ "$TASK" != "temp" ]]
+   [[ "$TASK" != "temp" ]] && \
+   [[ "$TASK" != "proxy_disable" ]]
 then
     echo Unsupported task: $TASK.
     exit 1
@@ -60,9 +62,14 @@ do
         ECID=$(echo $DATA | cut -d \" -f 12)
     fi
     
-    if [[ "$TASK" = 'reopen' ]]
+    if [[ "$TASK" = 'reopen_atlas' ]]
     then
         adb -s $IP shell su -c 'am force-stop com.nianticlabs.pokemongo && am force-stop com.pokemod.atlas && am startservice com.pokemod.atlas/com.pokemod.atlas.services.MappingService'
+    elif [[ "$TASK" = 'reopen_gc' ]]
+    then
+        adb -s $IP shell su -c 'am force-stop com.nianticlabs.pokemongo && am force-stop com.gocheats.launcher'
+        adb -s $IP shell su -c 'rm -rf /data/data/com.nianticlabs.pokemongo/cache/*'
+        adb -s $IP shell -tt 'monkey -p com.gocheats.launcher 1'
     elif [[ "$TASK" = 'reboot' ]]
     then
         adb -s $IP reboot
@@ -180,6 +187,10 @@ do
         # Reapply the SAM profile
         echo 'Applying SAM profile.'; sleep 2 && cfgutil -e $ECID -K org.der -C org.crt install-profile sam_pogo.mobileconfig > /dev/null 2>&1
         if [ $? -gt 0 ]; then echo 'Unable to apply SAM profile.'; RETURNCODE=`expr $RETURNCODE + 1`;continue; else echo 'SAM profile applied. Completed the JB reboot.'; fi
+    elif [[ "$TASK" = 'proxy_disable' ]]
+    then
+        adb -s $IP shell su -c 'settings put global http_proxy :0'
+        adb -s $IP shell su -c 'am broadcast -a android.intent.action.PROXY_CHANGE'
     fi
     # Skip this if it is an iPhone command
     if [[ "$TASK" != "jb_"* ]]
