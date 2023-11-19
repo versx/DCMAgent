@@ -39,6 +39,13 @@
 "manual_list" = True/False for creating your own JSON list of devices as device.json. See device.example.json.
 "manual_ip" = True/False for adding the IP to the device.json or to allow the script to find IPs.
 "use_ios_deploy" = True/False for using ios-deploy instead of cfgutil for querying devices (disables the profile command).
+"allow_cmds" = True/False for allowing the execution of local commands that are defined in "cmds".
+"cmds" = An array of objects that contain the "alias" (required), "command" (required), and "description" (optional).
+         "alias" is the name that you can send to the listener to execute a command without typing the full command.
+         "command" is a string used to hold the command and its parameters. Note that you should use nohup if the command's error output is larger than 200kb like Redux.
+         "description" is a string that you can use to keep notes about your command.
+         Note that passing parameters or using sudo are not supported as these open your system to attacks.
+
 ```
 
 ## Android Support

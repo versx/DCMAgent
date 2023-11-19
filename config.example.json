@@ -4,5 +4,18 @@
     "domain": "http://YOUR-DOMAIN.TLD",
     "manual_list": false,
     "manual_ip": false,
-    "use_ios_deploy": false
+    "use_ios_deploy": false,
+    "allow_cmds": false,
+    "cmds": [
+        {
+            "alias": "1",
+            "command": "pwd",
+            "description": "The pwd command prints the working directory"
+        },
+        {
+            "alias": "redux_1",
+            "command": "cd ~/redux/ && nohup ./redux.js -f",
+            "description": "This command changes to the Redux directory and executes Redux with the full auto parameter. Output is sent to nohup.out so the listener can avoid buffer overflows"
+        }
+    ]
 }
